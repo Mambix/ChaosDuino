@@ -1,5 +1,3 @@
-#include <CRC32.h>
-
 const int PinEN = 5;
 const int InputPin = 15;
 
