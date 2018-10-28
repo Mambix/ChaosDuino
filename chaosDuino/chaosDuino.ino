@@ -40,11 +40,7 @@ void setup() {
         delay(25); // fast blink
     }
     Serial.println("ChaosDuino v0.1.0 for PCB rev3 running...");
-    delay(100);
     forceFill();
-    if (bEntropyOff) {
-        digitalWrite(Entropy, LOW);
-    }
 }
 
 // the loop function runs over and over again forever
@@ -271,8 +267,19 @@ void fillEntropyPool() {
 void forceFill() {
     head = 0;
     tail = 0;
+    bForceFill = false;
+    digitalWrite(Entropy, HIGH);
+    digitalWrite(gLED, HIGH);
+    digitalWrite(rLED, LOW);
+    if (bEntropyOff) {
+        delay(100);
+    }
     for (int i = 0; i < POOL_SIZE; i++)
     {
         pool[i] = analogRead(BitStream) & 0xff;
+    }
+    digitalWrite(gLED, LOW);
+    if (bEntropyOff) {
+        digitalWrite(Entropy, LOW);
     }
 }
