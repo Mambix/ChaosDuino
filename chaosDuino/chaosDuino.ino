@@ -19,8 +19,7 @@ bool bOK = false;
 bool bForceFill = false;
 
 // the setup function runs once when you press reset or power the board
-void setup()
-{
+void setup() {
     // initialize digital pin LED_BUILTIN as an output.
     pinMode(rLED, OUTPUT);
     pinMode(gLED, OUTPUT);
@@ -42,21 +41,20 @@ void setup()
     }
     Serial.println("ChaosDuino v0.1.0 for PCB rev3 running...");
     delay(100);
-    for (int i = 0; i < POOL_SIZE; i++)
-    {
-        pool[head++] = analogRead(BitStream) & 0xff;
-    }
-    head = POOL_SIZE - 1;
+    forceFill();
     if (bEntropyOff) {
         digitalWrite(Entropy, LOW);
     }
 }
 
 // the loop function runs over and over again forever
-void loop()
-{
+void loop() {
     readSerial();
-    fillEntropyPool();
+    if (bForceFill) {
+        forceFill();
+    } else {
+        fillEntropyPool();
+    }
     if (tmpCnt++ == 0){
         if (cnt++ >= 16) {
             cnt = 0;
@@ -123,8 +121,7 @@ void printSHA() {
     Serial.println();
 }
 
-void parseCommand()
-{
+void parseCommand() {
     if (cmd != "") {
         bool OK = bOK;
         if (cmd == "AT") {
@@ -228,8 +225,7 @@ void parseCommand()
     }
 }
 
-void readSerial()
-{
+void readSerial() {
     if (Serial.available()) {
         c = Serial.read();
         if (c == 13) {
@@ -241,14 +237,13 @@ void readSerial()
     }
 }
 
-void fillEntropyPool()
-{
+void fillEntropyPool() {
     int t = tail;
     if (t < head)
     {
         t += POOL_SIZE;
     }
-    if (head < t || bForceFill)
+    if (head < t)
     {
         bForceFill = false;
         digitalWrite(Entropy, HIGH);
@@ -270,5 +265,14 @@ void fillEntropyPool()
         if (bEntropyOff) {
             digitalWrite(Entropy, LOW);
         }
+    }
+}
+
+void forceFill() {
+    head = 0;
+    tail = 0;
+    for (int i = 0; i < POOL_SIZE; i++)
+    {
+        pool[i] = analogRead(BitStream) & 0xff;
     }
 }
