@@ -1,3 +1,4 @@
+#define VERSION "0.1.2"
 #define rLED PB6
 #define gLED PB5
 #define bLED PB4
@@ -15,8 +16,14 @@ uint16_t tmpCnt = 0;
 
 bool bEntropyOff = true;
 uint8_t bMode = 0;
+uint8_t adcMode = 1;
 bool bOK = false;
 bool bForceFill = false;
+
+int tmpVal;
+int val;
+int val2 = 0;
+int val3;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -31,6 +38,14 @@ void setup() {
     digitalWrite(bLED, LOW);
     digitalWrite(Entropy, HIGH);
 
+    adc_set_prescaler(ADC_PRE_PCLK2_DIV_2);
+//    adc_set_prescaler(ADC_PRE_PCLK2_DIV_4);
+//    adc_set_prescaler(ADC_PRE_PCLK2_DIV_6);
+//    adc_set_prescaler(ADC_PRE_PCLK2_DIV_8);
+    adc_set_sample_rate(ADC1, ADC_SMPR_1_5);
+//    adc_set_sample_rate(ADC1, ADC_SMPR_1_5);
+    adc_enable_single_swstart(ADC1);
+
     Serial.begin();
     // wait for serial monitor to be connected.
     while (!(Serial.isConnected() && (Serial.getDTR() || Serial.getRTS())))
@@ -39,7 +54,6 @@ void setup() {
         digitalWrite(rLED, !digitalRead(rLED));
         delay(25); // fast blink
     }
-    Serial.println("ChaosDuino v0.1.0 for PCB rev3 running...");
     forceFill();
 }
 
@@ -99,6 +113,12 @@ void print(int cnt) {
     }
 }
 
+void dump() {
+    Serial.write(pool, POOL_SIZE);
+    digitalWrite(rLED, HIGH);
+    bForceFill = true;
+}
+
 void printSHA() {
     uint8_t c;
     for (int i=0; i<32; i++) {
@@ -122,6 +142,10 @@ void parseCommand() {
         bool OK = bOK;
         if (cmd == "AT") {
             Serial.println("AT");
+        } else if (cmd == "ATV") {
+            Serial.print("ChaosDuino ");
+            Serial.print(VERSION);
+            Serial.println(" for PCB rev3 running...");
         } else if (cmd == "ATLR0") {
                 // Red LED off
                 digitalWrite(rLED, LOW);
@@ -156,21 +180,55 @@ void parseCommand() {
                 } else {
                     Serial.println("0");
                 }
-        } else if (cmd == "ATM0") {
+        } else if (cmd == "ATP0") {
                 // binary mode; DEFAULT
                 bMode = 0;
-        } else if (cmd == "ATM1") {
+        } else if (cmd == "ATP1") {
                 // string HEX mode
                 bMode = 1;
-        } else if (cmd == "ATM2") {
+        } else if (cmd == "ATP2") {
                 // string DEC mode
                 bMode = 2;
-        } else if (cmd == "ATM?") {
+        } else if (cmd == "ATP?") {
                 // what mode are we using
-                Serial.print("ATM");
+                Serial.print("ATP");
                 uint8_t m = 48 + bMode;
                 Serial.write(m);
                 Serial.println();
+        } else if (cmd == "ATM0") {
+                adcMode = 0;
+                bForceFill = true;
+        } else if (cmd == "ATM1") {
+                adcMode = 1;
+                bForceFill = true;
+        } else if (cmd == "ATM2") {
+                adcMode = 2;
+                bForceFill = true;
+        } else if (cmd == "ATM3") {
+                adcMode = 3;
+                bForceFill = true;
+        } else if (cmd == "ATM4") {
+                adcMode = 4;
+                bForceFill = true;
+        } else if (cmd == "ATM5") {
+                adcMode = 5;
+                bForceFill = true;
+        } else if (cmd == "ATM6") {
+                adcMode = 6;
+                bForceFill = true;
+        } else if (cmd == "ATM7") {
+                adcMode = 7;
+                bForceFill = true;
+        } else if (cmd == "ATM?") {
+                // what mode are we using
+                Serial.print("ATM");
+                uint8_t m = 48 + adcMode;
+                Serial.write(m);
+                Serial.println();
+        } else if (cmd == "ATV2") {
+                Serial.print(val2);
+        } else if (cmd == "ATV3") {
+                Serial.print(val3);
         } else if (cmd == "ATOK0") {
                 // don't OK on success, only return Data
                 bOK = false;
@@ -202,6 +260,9 @@ void parseCommand() {
         } else if (cmd == "ATPOOL") {
                 // Dump all bytes from pool
                 print(POOL_SIZE);
+        } else if (cmd == "ATDUMP") {
+                // Dump all bytes from pool
+                dump();
         } else if (cmd == "ATPOOL?") {
                 // How many bytes in pool?
                 int bytes = tail;
@@ -233,6 +294,108 @@ void readSerial() {
     }
 }
 
+uint8_t readADC() {
+    switch (adcMode) {
+        case 0: return readADC_1A();
+        case 1: return readADC_1B();
+        case 2: return readADC_1C();
+        case 3: return readADC_1D();
+        case 4: return readADC_1E();
+        case 5: return readADC_1F();
+        case 6: return readADC_1G();
+        case 7: return readADC_1H();
+    }
+}
+
+uint16_t readRawADC() {
+    ADC1->regs->CR2 |= ADC_CR2_SWSTART;
+    while (!(ADC1->regs->SR & ADC_SR_EOC)) {}
+    return (uint16_t)(ADC1->regs->DR & ADC_DR_DATA);
+//    return analogRead(BitStream);
+}
+
+uint8_t readADC_1A() {
+    val = readRawADC();
+    return val & 0xff;
+}
+
+uint8_t readADC_1B() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val ^= val3;
+    val2 = val2 << 1;
+    val3 = val3 >> 1;
+    if (tmpVal & 0x100 == 0x100) {
+        val2 = readRawADC();
+    }
+    if (tmpVal & 0x200 == 0x200) {
+        val3 = readRawADC();
+    }
+    return val & 0xff;
+}
+
+uint8_t readADC_1C() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 1;
+    if (tmpVal & 0x100 == 0x100) {
+        val2 |= 0x0001;
+    }
+    return val & 0xff;
+}
+uint8_t readADC_1D() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 1;
+    if (tmpVal & 0x200 == 0x200) {
+        val2 |= 0x0001;
+    }
+    return val & 0xff;
+}
+
+uint8_t readADC_1E() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 1;
+    if (tmpVal & 0x400 == 0x400) {
+        val2 |= 0x0001;
+    }
+    return val & 0xff;
+}
+
+uint8_t readADC_1F() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 1;
+    if (tmpVal & 0x400 == 0x400) {
+        val2 ^= tmpVal >> 8;
+    }
+    return val & 0xff;
+}
+
+uint8_t readADC_1G() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 4;
+    val2 |= tmpVal >> 8;
+    return val & 0xff;
+}
+
+uint8_t readADC_1H() {
+    val = readRawADC();
+    tmpVal = val;
+    val ^= val2;
+    val2 = val2 << 2;
+    val2 |= (tmpVal >> 8) & 0x03;
+    return val & 0xff;
+}
+
 void fillEntropyPool() {
     int t = tail;
     if (t < head)
@@ -250,7 +413,7 @@ void fillEntropyPool() {
         }
         while (head < t)
         {
-            pool[head++] = analogRead(BitStream) & 0xff;
+            pool[head++] = readADC();
             if (head == POOL_SIZE)
             {
                 head = 0;
@@ -276,7 +439,7 @@ void forceFill() {
     }
     for (int i = 0; i < POOL_SIZE; i++)
     {
-        pool[i] = analogRead(BitStream) & 0xff;
+          pool[i] = readADC();
     }
     digitalWrite(gLED, LOW);
     if (bEntropyOff) {
