@@ -1,3 +1,5 @@
+#include "BIP39.h"
+
 #define VERSION "0.1.2"
 #define rLED PB6
 #define gLED PB5
@@ -19,6 +21,7 @@ uint8_t bMode = 0;
 uint8_t adcMode = 1;
 bool bOK = false;
 bool bForceFill = false;
+uint8_t words = 24;
 
 int tmpVal;
 int val;
@@ -271,6 +274,34 @@ void parseCommand() {
                 }
                 bytes -= head;
                 Serial.println(bytes);
+        } else if (cmd == "BIP39W15") {
+                words = 15;
+        } else if (cmd == "BIP39W18") {
+                words = 18;
+        } else if (cmd == "BIP39W21") {
+                words = 21;
+        } else if (cmd == "BIP39W24") {
+                words = 24;
+        } else if (cmd == "BIP39") {
+                // How many bytes in pool?
+                int bytes = tail;
+                if (tail<=head) {
+                    bytes += POOL_SIZE;
+                }
+                bytes -= head;
+                if (bytes<words) {
+                    Serial.println("ERROR");
+                } else {
+                    for (int i=0; i<words; i++) {
+                        int sum=0;
+                        for (int w=0; w<4; w++) {
+                            sum += readRawADC() & 0xff;
+                        }
+                        Serial.print(BIP39[sum]);
+                        Serial.print(' ');
+                    }
+                    Serial.println();
+                }
         } else {
                 // No idea what you send me!
                 Serial.println("ERROR");
