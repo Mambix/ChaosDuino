@@ -8,7 +8,7 @@ import sys
 import time
 from serial import Serial
 
-PORT = '/dev/maple'
+PORT = '/dev/ttyACM0'
 
 class TestCom(unittest.TestCase):
     def setUp(self):
