@@ -5,8 +5,8 @@ except ImportError:
 
 import unittest
 import sys
-import serial
 import time
+from serial import Serial
 
 PORT = '/dev/maple'
 
@@ -15,7 +15,7 @@ class TestCom(unittest.TestCase):
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def test_port(self):
-        ser=serial.Serial(PORT, 2000000, timeout=3)
+        ser=Serial(PORT, 2000000, timeout=3)
         time.sleep(0.1)
         ser.write('AT\r')
         time.sleep(0.1)
