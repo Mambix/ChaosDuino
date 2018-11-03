@@ -179,9 +179,9 @@ void parseCommand() {
                 // what mode are we using
                 Serial.print("ATE");
                 if (bEntropyOff) {
-                    Serial.println("1");
-                } else {
                     Serial.println("0");
+                } else {
+                    Serial.println("1");
                 }
         } else if (cmd == "ATP0") {
                 // binary mode; DEFAULT
