@@ -30,7 +30,7 @@ class TestSettings(unittest.TestCase):
         time.sleep(0.1)
         response = ser.readline()
         ser.close()
-        self.assertEqual(response, 'ChaosDuino 0.1.2 for PCB rev3 running...\r\n')
+        self.assertEqual(response, 'ChaosDuino v0.1.3 for PCB rev3 running...\r\n')
 
     def test_02_LED(self):
         ser=Serial(PORT, 2000000, timeout=3)
@@ -65,14 +65,14 @@ class TestSettings(unittest.TestCase):
         ser.write('ATE?\r')
         time.sleep(0.1)
         response = ser.readline()
-        self.assertEqual(response, 'ATE0\r\n')
+        self.assertEqual(response, 'ATE1\r\n')
 
-        ser.write('ATE1\r')
+        ser.write('ATE0\r')
         time.sleep(0.1)
         ser.write('ATE?\r')
         time.sleep(0.1)
         response = ser.readline()
-        self.assertEqual(response, 'ATE1\r\n')
+        self.assertEqual(response, 'ATE0\r\n')
         ser.close()
 
     def test_04_ATP(self):

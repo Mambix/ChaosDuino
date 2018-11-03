@@ -1,6 +1,6 @@
 #include "BIP39.h"
 
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define rLED PB6
 #define gLED PB5
 #define bLED PB4
@@ -146,7 +146,7 @@ void parseCommand() {
         if (cmd == "AT") {
             Serial.println("AT");
         } else if (cmd == "ATV") {
-            Serial.print("ChaosDuino ");
+            Serial.print("ChaosDuino v");
             Serial.print(VERSION);
             Serial.println(" for PCB rev3 running...");
         } else if (cmd == "ATLR0") {
