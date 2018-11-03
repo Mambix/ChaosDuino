@@ -195,9 +195,7 @@ void parseCommand() {
         } else if (cmd == "ATP?") {
                 // what mode are we using
                 Serial.print("ATP");
-                uint8_t m = 48 + bMode;
-                Serial.write(m);
-                Serial.println();
+                Serial.println(bMode, DEC);
         } else if (cmd == "ATM0") {
                 adcMode = 0;
                 bForceFill = true;
@@ -225,9 +223,7 @@ void parseCommand() {
         } else if (cmd == "ATM?") {
                 // what mode are we using
                 Serial.print("ATM");
-                uint8_t m = 48 + adcMode;
-                Serial.write(m);
-                Serial.println();
+                Serial.println(adcMode, DEC);
         } else if (cmd == "ATV2") {
                 Serial.print(val2);
         } else if (cmd == "ATV3") {
@@ -273,7 +269,7 @@ void parseCommand() {
                     bytes += POOL_SIZE;
                 }
                 bytes -= head;
-                Serial.println(bytes);
+                Serial.println(bytes, DEC);
         } else if (cmd == "BIP39W15") {
                 words = 15;
         } else if (cmd == "BIP39W18") {
@@ -302,6 +298,9 @@ void parseCommand() {
                     }
                     Serial.println();
                 }
+        } else if (cmd == "BIP39W?") {
+                Serial.print("BIP39W");
+                Serial.println(words, DEC);
         } else {
                 // No idea what you send me!
                 Serial.println("ERROR");
@@ -376,6 +375,7 @@ uint8_t readADC_1C() {
     }
     return val & 0xff;
 }
+
 uint8_t readADC_1D() {
     val = readRawADC();
     tmpVal = val;
