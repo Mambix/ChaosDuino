@@ -65,14 +65,14 @@ class TestSettings(unittest.TestCase):
         ser.write('ATE?\r')
         time.sleep(0.1)
         response = ser.readline()
-        self.assertEqual(response, 'ATE1\r\n')
+        self.assertEqual(response, 'ATE0\r\n')
 
-        ser.write('ATE0\r')
+        ser.write('ATE1\r')
         time.sleep(0.1)
         ser.write('ATE?\r')
         time.sleep(0.1)
         response = ser.readline()
-        self.assertEqual(response, 'ATE0\r\n')
+        self.assertEqual(response, 'ATE1\r\n')
         ser.close()
 
     def test_04_ATP(self):
